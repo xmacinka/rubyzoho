@@ -78,7 +78,7 @@ class RubyZoho::Crm
 
   c = Class.new(self) do
     def initialize(object_attribute_hash = {})
-      Crm.module_name = 'Users'
+      Crm.module_name = 'ZohoUsers'
       super
     end
 
@@ -102,11 +102,11 @@ class RubyZoho::Crm
     end
 
     def self.method_missing(meth, *args, &block)
-      Crm.module_name = 'Users'
+      Crm.module_name = 'ZohoUsers'
       super
     end
   end
 
-  Kernel.const_set 'User', c
+  Kernel.const_set 'ZohoUser', c
 
 end
