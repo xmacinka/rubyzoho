@@ -21,14 +21,19 @@ module RubyZoho
   end
 
   def self.configure
-    self.configuration ||= Configuration.new
-    yield(configuration) if block_given?
+    conf = Configuration.new
+    yield(conf) if block_given?
+    return if self.configuration && conf.api_key == self.configuration.api_key
+    first_run = self.configuration.nil?
+    self.configuration = conf
     self.configuration.crm_modules ||= []
-    self.configuration.crm_modules = %w[Accounts Calls Contacts Events Leads Potentials Tasks].concat(
+    self.configuration.crm_modules = %w[Accounts Contacts Leads Potentials].concat(
         self.configuration.crm_modules).uniq
     self.configuration.api = init_api(self.configuration.api_key,
         self.configuration.crm_modules, self.configuration.cache_fields)
-    RubyZoho::Crm.setup_classes()
+    if first_run == true
+      RubyZoho::Crm.setup_classes()
+    end
   end
 
   def self.init_api(api_key, modules, cache_fields)
@@ -241,38 +246,38 @@ module RubyZoho
       end
     end
 
-    c = Class.new(RubyZoho::Crm) do
-      def initialize(object_attribute_hash = {})
-        Crm.module_name = 'Users'
-        super
-      end
+    # c = Class.new(RubyZoho::Crm) do
+    #   def initialize(object_attribute_hash = {})
+    #     Crm.module_name = 'Users'
+    #     super
+    #   end
 
-      def self.delete(id)
-        raise 'Cannot delete users through API'
-      end
+    #   def self.delete(id)
+    #     raise 'Cannot delete users through API'
+    #   end
 
-      def save
-        raise 'Cannot delete users through API'
-      end
+    #   def save
+    #     raise 'Cannot delete users through API'
+    #   end
 
-      def self.all
-        result = RubyZoho.configuration.api.users('AllUsers')
-        result.collect { |r| new(r) }
-      end
+    #   def self.all
+    #     result = RubyZoho.configuration.api.users('AllUsers')
+    #     result.collect { |r| new(r) }
+    #   end
 
-      def self.find_by_email(email)
-        r = []
-        self.all.index { |u| r << u if u.email == email }
-        r
-      end
+    #   def self.find_by_email(email)
+    #     r = []
+    #     self.all.index { |u| r << u if u.email == email }
+    #     r
+    #   end
 
-      def self.method_missing(meth, *args, &block)
-        Crm.module_name = 'Users'
-        super
-      end
-    end
+    #   def self.method_missing(meth, *args, &block)
+    #     Crm.module_name = 'Users'
+    #     super
+    #   end
+    # end
 
-    Kernel.const_set 'User', c
+    # Kernel.const_set 'User', c
 
   end
 end
