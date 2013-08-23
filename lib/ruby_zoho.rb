@@ -29,9 +29,14 @@ module RubyZoho
     self.configuration.crm_modules ||= []
     self.configuration.crm_modules = %w[Accounts Contacts Leads Potentials].concat(
         self.configuration.crm_modules).uniq
-    self.configuration.api = init_api(self.configuration.api_key,
-        self.configuration.crm_modules, self.configuration.cache_fields)
-    if first_run == true
+    begin
+	  self.configuration.api = init_api(self.configuration.api_key,
+	    self.configuration.crm_modules, self.configuration.cache_fields)
+	rescue Exception => e
+	  self.configuration = nil
+	  return
+	end
+	if first_run == true
       RubyZoho::Crm.setup_classes()
     end
   end
