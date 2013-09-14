@@ -168,13 +168,13 @@ module RubyZoho
       new(r[0])
     end
 
-    def self.all         #TODO Refactor into low level API
+    def self.all(last_modified_time = nil)         #TODO Refactor into low level API
       max_records = 200
       result = []
       i = 1
       batch = []
       until batch.nil?
-        batch = RubyZoho.configuration.api.some(self.module_name, i, max_records)
+        batch = RubyZoho.configuration.api.some(self.module_name, i, max_records, last_modified_time)
         result.concat(batch) unless batch.nil?
         break if !batch.nil? && batch.count < max_records
         i += max_records

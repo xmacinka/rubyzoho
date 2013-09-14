@@ -244,10 +244,15 @@ module ZohoApi
       check_for_errors(r)
     end
 
-    def some(module_name, index = 1, number_of_records = nil)
+    def some(module_name, index = 1, number_of_records = nil, last_modified_time = nil)
+	  query = { :newFormat => 2, :authtoken => @auth_token, :scope => 'crmapi',
+          :fromIndex => index, :toIndex => (index+number_of_records-1) || NUMBER_OF_RECORDS_TO_GET }
+	  if last_modified_time
+	    query[:lastModifiedTime] = last_modified_time
+	  end
+	
       r = self.class.get(create_url(module_name, 'getRecords'),
-        :query => { :newFormat => 2, :authtoken => @auth_token, :scope => 'crmapi',
-          :fromIndex => index, :toIndex => (index+number_of_records-1) || NUMBER_OF_RECORDS_TO_GET })
+        :query => query)
       return nil unless r.response.code == '200'
       check_for_errors(r)
       x = REXML::Document.new(r.body).elements.to_a("/response/result/#{module_name}/row")
