@@ -191,6 +191,9 @@ module ZohoApi
     def create_and_add_field_value_pair(field_name, module_name, n, record)
       k = ApiUtils.string_to_symbol(field_name)
       v = n.text == 'null' ? nil : n.text
+      if module_name.downcase == 'contacts' && record[:contactid] && record[:id] && field_name == "Contactid"
+        return record
+      end
       r = record.merge({k => v})
       r = r.merge({:id => v}) if primary_key?(module_name, k)
       r
