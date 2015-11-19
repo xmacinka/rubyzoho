@@ -93,6 +93,9 @@ module RubyZoho
       names.each do |name|
         n = name.class == Symbol ? name.to_s : name
         n.gsub!(/[()]*/, '')
+        if /\A\d.*/.match(n) # starts with a digit?
+          n = "nn_"+n
+        end
         raise(RuntimeError, "Bad field name: #{name}") unless method_name?(n)
         create_getter(klass, n)
         create_setter(klass, n)
@@ -125,6 +128,10 @@ module RubyZoho
     end
 
     def method_missing(meth, *args, &block)
+      if /\A\d.*/.match(meth.to_s) # starts with a digit?
+        # meth = ("nn_"+meth.to_s).to_sym
+        return nil
+      end
       if [:seid=, :semodule=].index(meth)
         run_create_accessor(self.class, meth)
         self.send(meth, args[0])
@@ -135,6 +142,9 @@ module RubyZoho
 
     def self.method_name?(n)
       name = n.class == String ? ApiUtils.string_to_symbol(n) : n
+      if /\A\d.*/.match(n) # starts with a digit?
+        return true
+      end
       return /[@$"]/ !~ name.inspect
     end
 
