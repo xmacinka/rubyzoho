@@ -93,6 +93,7 @@ module RubyZoho
       names.each do |name|
         n = name.class == Symbol ? name.to_s : name
         n.gsub!(/[()]*/, '')
+        n.gsub!(',','')
         if /\A\d.*/.match(n) # starts with a digit?
           n = "nn_"+n
         end
