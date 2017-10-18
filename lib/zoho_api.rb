@@ -23,10 +23,11 @@ module ZohoApi
 
     #debug_output $stderr
 
-    attr_reader :auth_token, :module_fields
+    attr_reader :auth_token, :zoho_domain, :module_fields
 
-    def initialize(auth_token, modules, ignore_fields, fields = nil)
+    def initialize(auth_token, zoho_domain, modules, ignore_fields, fields = nil)
       @auth_token = auth_token
+      @zoho_domain = zoho_domain
       @modules = %w(Accounts Contacts Events Leads Potentials Tasks Users).concat(modules).uniq
       @module_fields = fields.nil? ? reflect_module_fields : fields
       @ignore_fields = ignore_fields
@@ -95,7 +96,11 @@ module ZohoApi
     end
 
     def create_url(module_name, api_call)
-      "https://crm.zoho.com/crm/private/xml/#{module_name}/#{api_call}"
+      if @zoho_domain == 'eu'
+        "https://crm.zoho.eu/crm/private/xml/#{module_name}/#{api_call}"
+      else
+        "https://crm.zoho.com/crm/private/xml/#{module_name}/#{api_call}"
+      end
     end
 
     def delete_record(module_name, record_id)

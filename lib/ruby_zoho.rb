@@ -5,10 +5,11 @@ require 'yaml'
 module RubyZoho
 
   class Configuration
-    attr_accessor :api, :api_key, :cache_fields, :crm_modules, :ignore_fields_with_bad_names
+    attr_accessor :api, :api_key, :zoho_domain, :cache_fields, :crm_modules, :ignore_fields_with_bad_names
 
     def initialize
       self.api_key = nil
+      self.zoho_domain = 'com'
       self.api = nil
       self.cache_fields = false
       self.crm_modules = nil
@@ -23,14 +24,14 @@ module RubyZoho
   def self.configure
     conf = Configuration.new
     yield(conf) if block_given?
-    return if self.configuration && conf.api_key == self.configuration.api_key
+    return if self.configuration && conf.api_key == self.configuration.api_key && conf.zoho_domain == self.configuration.zoho_domain
     first_run = self.configuration.nil?
     self.configuration = conf
     self.configuration.crm_modules ||= []
     self.configuration.crm_modules = %w[Accounts Contacts Leads Potentials].concat(
         self.configuration.crm_modules).uniq
     begin
-	  self.configuration.api = init_api(self.configuration.api_key,
+	  self.configuration.api = init_api(self.configuration.api_key, self.configuration.zoho_domain,
 	    self.configuration.crm_modules, self.configuration.cache_fields)
 	rescue Exception => e
 	  self.configuration = nil
@@ -41,14 +42,14 @@ module RubyZoho
     end
   end
 
-  def self.init_api(api_key, modules, cache_fields)
+  def self.init_api(api_key, zoho_domain, modules, cache_fields)
     base_path = File.join(File.dirname(__FILE__), '..', 'spec', 'fixtures')
     if File.exists?(File.join(base_path, 'fields.snapshot')) && cache_fields == true
       fields = YAML.load(File.read(File.join(base_path, 'fields.snapshot')))
-      zoho = ZohoApi::Crm.new(api_key, modules,
+      zoho = ZohoApi::Crm.new(api_key, zoho_domain, modules,
           self.configuration.ignore_fields_with_bad_names, fields)
     else
-      zoho = ZohoApi::Crm.new(api_key, modules, self.configuration.ignore_fields_with_bad_names)
+      zoho = ZohoApi::Crm.new(api_key, zoho_domain, modules, self.configuration.ignore_fields_with_bad_names)
       fields = zoho.module_fields
       File.open(File.join(base_path, 'fields.snapshot'), 'wb') { |file| file.write(fields.to_yaml) } if cache_fields == true
     end
